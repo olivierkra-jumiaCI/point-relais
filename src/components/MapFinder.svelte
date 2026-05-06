@@ -8,6 +8,8 @@
   let map;
   let markers;
   let searchQuery = '';
+  let orangeIcon;
+
   let activeFilter = 'all';
 
   function flyTo(lat, lng, zoom) {
@@ -26,6 +28,67 @@
     ? regions.filter(r => r.name.toLowerCase().includes(searchQuery.toLowerCase()))
     : regions;
 
+  async function fetchSheetData() {
+    try {
+      const response = await fetch('https://docs.google.com/spreadsheets/d/1M52gDOvkoXZtCA7RSmHM1vy4ksO6H5fdQQ-twAkRqKk/export?format=csv&gid=0');
+      const text = await response.text();
+      
+      // Basic CSV parser that handles simple quoting
+      const rows = text.split('\r\n').map(row => {
+        const result = [];
+        let current = '';
+        let inQuotes = false;
+        for (let i = 0; i < row.length; i++) {
+          const char = row[i];
+          if (char === '"') inQuotes = !inQuotes;
+          else if (char === ',' && !inQuotes) {
+            result.push(current);
+            current = '';
+          } else {
+            current += char;
+          }
+        }
+        result.push(current);
+        return result;
+      });
+
+      if (rows.length < 2) return;
+      const headers = rows[0].map(h => h.trim());
+      
+      const pusIdx = headers.indexOf('pus');
+      const longlatIdx = headers.indexOf('longlat');
+      const statusIdx = headers.indexOf('statut');
+      const addressIdx = headers.indexOf('adresse');
+
+      agencies = rows.slice(1)
+        .filter(row => row[statusIdx] === 'Live')
+        .map(row => {
+          const [lat, lng] = (row[longlatIdx] || '').split(',').map(Number);
+          return {
+            n: row[pusIdx],
+            lat,
+            lng,
+            address: row[addressIdx]
+          };
+        })
+        .filter(a => !isNaN(a.lat) && !isNaN(a.lng));
+
+      if (markers && map) {
+        markers.clearLayers();
+        agencies.forEach(a => {
+          const m = L.marker([a.lat, a.lng], { icon: orangeIcon })
+            .bindPopup(`<div style="font-family:Roboto,sans-serif;min-width:180px"><strong style="color:#FF9900;font-family:Montserrat,sans-serif;display:block;margin-bottom:4px">${a.n}</strong><small style="color:#666;line-height:1.4;display:block">${a.address || 'Point Relais Jumia'}</small></div>`);
+          markers.addLayer(m);
+        });
+        if (agencies.length > 0) {
+          map.fitBounds(markers.getBounds().pad(0.1));
+        }
+      }
+    } catch (e) {
+      console.error('Error fetching sheet data:', e);
+    }
+  }
+
   onMount(() => {
     if (typeof L === 'undefined') return;
 
@@ -36,20 +99,15 @@
       subdomains: 'abcd', maxZoom: 19
     }).addTo(map);
 
-    const orangeIcon = L.divIcon({
+    orangeIcon = L.divIcon({
       className: '',
       html: '<div style="width:22px;height:22px;border-radius:50% 50% 50% 0;background:#FF9900;transform:rotate(-45deg);border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3)"><div style="width:7px;height:7px;background:#fff;border-radius:50%;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)"></div></div>',
       iconSize: [22, 22], iconAnchor: [11, 22], popupAnchor: [0, -24]
     });
 
-    markers = L.featureGroup();
-    agencies.forEach(a => {
-      const m = L.marker([a.lat, a.lng], { icon: orangeIcon })
-        .bindPopup(`<div style="font-family:Roboto,sans-serif;min-width:160px"><strong style="color:#FF9900;font-family:Montserrat,sans-serif">${a.n}</strong><br/><small style="color:#888">Agence Jumia</small></div>`);
-      markers.addLayer(m);
-    });
-    markers.addTo(map);
-    map.fitBounds(markers.getBounds().pad(0.05));
+    markers = L.featureGroup().addTo(map);
+    
+    fetchSheetData();
   });
 </script>
 
