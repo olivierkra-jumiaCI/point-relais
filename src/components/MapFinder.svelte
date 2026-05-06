@@ -434,7 +434,8 @@
   /* Sidebar */
   .map-sidebar {
     width: 380px;
-    min-width: 380px;
+    min-width: 0;
+    max-width: 100%;
     display: flex;
     flex-direction: column;
     background: var(--white);

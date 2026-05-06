@@ -68,11 +68,24 @@
   .badge-grey { background: var(--warm-grey); color: var(--mid); }
 
   @media (max-width: 600px) {
-    .zones-section { padding: 0 16px; }
-    .zones-table-wrap { overflow-x: hidden; } /* Fix the block, no scroll */
-    .zones-table td, .zones-table th { padding: 10px 8px; font-size: .7rem; }
+    .zones-section { padding: 0 16px; width: 100%; }
+    .zones-table-wrap { overflow: hidden; width: 100%; }
+    .zones-table { table-layout: fixed; width: 100%; }
+    .zones-table td, .zones-table th { 
+      padding: 8px 4px; 
+      font-size: .65rem; 
+      word-wrap: break-word; 
+      overflow-wrap: break-word; 
+      white-space: normal;
+    }
     .zones-table th:nth-child(5), .zones-table td:nth-child(5) { display: none; }
-    .zone-icon { width: 40px; height: 40px; font-size: 1.2rem; }
-    .zones-table td:first-child { width: 50px; }
+    
+    /* Column widths for mobile */
+    .zones-table th:nth-child(1), .zones-table td:nth-child(1) { width: 45px; }
+    .zones-table th:nth-child(2), .zones-table td:nth-child(2) { width: auto; }
+    .zones-table th:nth-child(3), .zones-table td:nth-child(3) { width: 65px; }
+    .zones-table th:nth-child(4), .zones-table td:nth-child(4) { width: 65px; }
+    
+    .zone-icon { width: 32px; height: 32px; font-size: 1rem; border-radius: 8px; }
   }
 </style>
