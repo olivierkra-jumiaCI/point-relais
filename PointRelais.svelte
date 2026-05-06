@@ -42,7 +42,8 @@
     display: flex;
     flex-direction: column;
   }
-</style>
+
+  @media (max-width: 600px) {
     .cities-grid, .steps-grid, .info-3col { grid-template-columns: 1fr; }
     .section, .info-grid-section, .zones-section, .faq-section, .footer-cta, .info-banner { padding: 0 16px; }
     .footer-cta-inner { flex-direction: column; }
