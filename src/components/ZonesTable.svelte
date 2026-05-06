@@ -69,6 +69,10 @@
 
   @media (max-width: 600px) {
     .zones-section { padding: 0 16px; }
-    .zones-table td { padding: 10px 12px; font-size: .75rem; }
+    .zones-table-wrap { overflow-x: hidden; } /* Fix the block, no scroll */
+    .zones-table td, .zones-table th { padding: 10px 8px; font-size: .7rem; }
+    .zones-table th:nth-child(5), .zones-table td:nth-child(5) { display: none; }
+    .zone-icon { width: 40px; height: 40px; font-size: 1.2rem; }
+    .zones-table td:first-child { width: 50px; }
   }
 </style>
