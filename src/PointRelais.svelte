@@ -38,6 +38,9 @@
 
 <style>
   .app-container {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 0 32px;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
