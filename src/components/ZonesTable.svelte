@@ -4,10 +4,10 @@
     <table class="zones-table">
       <thead>
         <tr>
-          <th>Zone</th>
-          <th>Villes concernées</th>
-          <th>Délai standard</th>
-          <th>Délai Express</th>
+          <th></th>
+          <th>Villes</th>
+          <th>Standard</th>
+          <th>Express</th>
           <th>Retour</th>
         </tr>
       </thead>

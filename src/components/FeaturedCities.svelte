@@ -5,7 +5,6 @@
 <div class="section anim-3">
   <div class="section-header">
     <h2>Nouvelles ouvertures</h2>
-    <a href="#finder" class="section-link">Voir toutes les villes →</a>
   </div>
   <div class="cities-grid">
     {#each cities as city}
