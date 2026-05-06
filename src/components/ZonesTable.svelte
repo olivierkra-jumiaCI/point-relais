@@ -51,7 +51,7 @@
   .section-header h2 { font-family: 'Montserrat', sans-serif; font-size: 1.65rem; font-weight: 800; position: relative; }
   .section-header h2::after { content: ''; display: block; width: 40px; height: 4px; background: var(--orange); border-radius: 2px; margin-top: 8px; }
 
-  .zones-table-wrap { background: var(--white); border: 1px solid var(--border); border-radius: var(--r-lg); overflow: hidden; box-shadow: var(--sh); }
+  .zones-table-wrap { background: var(--white); border: 1px solid var(--border); border-radius: var(--r-lg); overflow-x: auto; box-shadow: var(--sh); }
   .zones-table { width: 100%; border-collapse: collapse; }
   .zones-table thead th { background: var(--dark); color: var(--white); font-family: 'Montserrat', sans-serif; font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; padding: 16px 20px; text-align: left; }
   .zones-table tbody tr { border-bottom: 1px solid var(--border); transition: background .15s; }

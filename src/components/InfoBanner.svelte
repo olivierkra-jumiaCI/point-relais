@@ -24,5 +24,6 @@
 
   @media (max-width: 600px) {
     .info-banner { padding: 0 16px; }
+    .info-card { flex-direction: column; text-align: center; gap: 16px; }
   }
 </style>

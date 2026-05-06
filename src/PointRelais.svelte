@@ -44,8 +44,8 @@
   }
 
   @media (max-width: 600px) {
-    .cities-grid, .steps-grid, .info-3col { grid-template-columns: 1fr; }
-    .section, .info-grid-section, .zones-section, .faq-section, .footer-cta, .info-banner { padding: 0 16px; }
-    .footer-cta-inner { flex-direction: column; }
+    :global(.cities-grid), :global(.steps-grid), :global(.info-3col) { grid-template-columns: 1fr !important; }
+    :global(.section), :global(.info-grid-section), :global(.zones-section), :global(.faq-section), :global(.footer-cta), :global(.info-banner) { padding: 0 16px !important; }
+    :global(.footer-cta-inner) { flex-direction: column !important; }
   }
 </style>
