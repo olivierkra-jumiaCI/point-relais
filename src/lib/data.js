@@ -1,5 +1,5 @@
 export const stats = [
-  { num: '150+', label: 'Agences actives' },
+  { num: '231+', label: 'Agences actives' },
   { num: '100+', label: 'Villes couvertes' },
   { num: '34', label: 'Régions desservies' },
   { num: '6j/7', label: 'Jours d\'ouverture' }

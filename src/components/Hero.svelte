@@ -5,7 +5,7 @@
     <div class="hero-text">
       <div class="hero-badge anim-1"><span class="dot"></span>Réseau actif en Côte d'Ivoire</div>
       <h1 class="anim-2">Vos <span>agences & points relais</span> Jumia</h1>
-      <p class="hero-sub anim-3">Retirez ou retournez votre commande dans plus de <strong style="color:var(--orange)">150 agences</strong> réparties dans plus de 100 villes à travers toute la Côte d'Ivoire. Rapide, simple et sans frais supplémentaires.</p>
+      <p class="hero-sub anim-3">Retirez ou retournez votre commande dans plus de <strong style="color:var(--orange)">231 agences</strong> réparties dans plus de 100 villes à travers toute la Côte d'Ivoire. Rapide, simple et sans frais supplémentaires.</p>
     </div>
   </div>
 </header>
