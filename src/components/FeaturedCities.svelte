@@ -31,7 +31,9 @@
 
   .cities-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
   .city-card { border-radius: var(--r-lg); overflow: hidden; box-shadow: var(--sh); position: relative; cursor: pointer; transition: transform .25s, box-shadow .25s; display: block; text-decoration: none; }
-  .city-card:hover { transform: translateY(-4px); box-shadow: var(--sh-lg); }
+  @media (hover: hover) {
+    .city-card:hover { transform: translateY(-4px); box-shadow: var(--sh-lg); }
+  }
   .city-card-img { width: 100%; height: 200px; object-fit: cover; display: block; background: var(--border); }
   .city-card-body { background: var(--white); padding: 18px 20px; border: 1px solid var(--border); border-top: none; border-radius: 0 0 var(--r-lg) var(--r-lg); }
   .city-card-name { font-family: 'Montserrat', sans-serif; font-size: 1.05rem; font-weight: 700; margin-bottom: 6px; color: var(--dark); }

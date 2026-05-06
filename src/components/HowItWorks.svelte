@@ -25,7 +25,9 @@
   .steps-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; position: relative; }
   .steps-grid::before { content: ''; position: absolute; top: 36px; left: calc(12.5% + 8px); right: calc(12.5% + 8px); height: 2px; background: linear-gradient(90deg, var(--orange), var(--orange-mid), var(--orange)); opacity: .35; pointer-events: none; }
   .step-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 28px 20px 24px; text-align: center; box-shadow: var(--sh); transition: transform .2s, box-shadow .2s; }
-  .step-card:hover { transform: translateY(-3px); box-shadow: var(--sh-lg); }
+  @media (hover: hover) {
+    .step-card:hover { transform: translateY(-3px); box-shadow: var(--sh-lg); }
+  }
   .step-num { width: 48px; height: 48px; border-radius: 50%; background: var(--orange-lt); border: 2px solid var(--orange-mid); display: flex; align-items: center; justify-content: center; font-family: 'Montserrat', sans-serif; font-size: 1.1rem; font-weight: 800; color: var(--orange-dk); margin: 0 auto 16px; position: relative; z-index: 1; }
   .step-icon { font-size: 1.5rem; display: block; margin-bottom: 12px; }
   .step-card h4 { font-family: 'Montserrat', sans-serif; font-size: .95rem; font-weight: 700; margin-bottom: 8px; }

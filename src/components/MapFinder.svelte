@@ -342,10 +342,12 @@
     font-weight: 700;
     transition: all 0.2s;
   }
-  :global(.popup-cta:hover) {
-    background: #1E293B;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2);
+  @media (hover: hover) {
+    :global(.popup-cta:hover) {
+      background: #1E293B;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2);
+    }
   }
 
   .map-finder-section {
