@@ -15,7 +15,7 @@ export const steps = [
   { num: 1, icon: '🛒', title: 'Passez commande', text: 'Sélectionnez vos articles sur Jumia.ci et procédez au paiement normalement.' },
   { num: 2, icon: '📍', title: 'Choisissez une agence', text: 'Lors du choix de la méthode de livraison, sélectionnez « Point relais » et choisissez l\'agence la plus proche.' },
   { num: 3, icon: '📩', title: 'Recevez une notification', text: 'Un SMS vous avertit dès que votre colis est disponible en agence, prêt à être retiré.' },
-  { num: 4, icon: '✅', title: 'Retirez votre colis', text: 'Présentez votre pièce d\'identité et le code de retrait. C\'est tout !' }
+  { num: 4, icon: '✅', title: 'Retirez votre colis', text: 'Munissez-vous de votre code de retrait (et de votre pièce d\'identité pour les commandes prépayées). C\'est tout !' }
 ];
 
 export const agences = [
@@ -217,7 +217,7 @@ export const cityFilterCoords = {
 export const faqs = [
   { q: 'Comment choisir une agence lors de ma commande ?', a: 'Lors du passage en caisse sur Jumia.ci, sélectionnez "Point relais Jumia". La liste des agences disponibles dans votre région s\'affichera automatiquement.' },
   { q: 'Combien de temps mon colis reste-t-il en agence ?', a: 'Votre colis est conservé <strong>5 jours ouvrables</strong> après réception. Passé ce délai, il peut être retourné à l\'entrepôt Jumia.' },
-  { q: 'Quels documents apporter pour retirer mon colis ?', a: 'Présentez votre <strong>pièce d\'identité valide</strong> (CNI, passeport) ainsi que le <strong>code de retrait</strong> reçu par SMS. Une photo du SMS suffit.' },
+  { q: 'Quels documents apporter pour retirer mon colis ?', a: 'Présentez le <strong>code de retrait</strong> reçu par SMS. La <strong>pièce d\'identité</strong> n\'est requise que pour les commandes déjà réglées en ligne (prépayées).' },
   { q: 'Puis-je envoyer quelqu\'un d\'autre retirer à ma place ?', a: 'Oui, un mandataire peut retirer votre colis avec votre code de retrait et sa propre pièce d\'identité.' },
   { q: 'Comment retourner un article en agence ?', a: 'Initiez le retour depuis votre compte Jumia, puis déposez l\'article dans une agence portant le logo <strong>↩ Retour autorisé</strong> dans les 7 jours suivant la réception.' },
   { q: 'Le retrait en point relais est-il gratuit ?', a: 'Non, le retrait en agence Jumia n\'est pas gratuit, mais il est <strong>moins coûteux</strong> qu\'une livraison à domicile.' }
