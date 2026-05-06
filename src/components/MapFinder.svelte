@@ -1,27 +1,20 @@
 <script>
   import { onMount } from 'svelte';
+  import L from 'leaflet';
+  import 'leaflet/dist/leaflet.css';
 
   export let agencies = [];
   export let regions = [];
-  export let cityFilterCoords = {};
 
   let map;
   let markers;
   let searchQuery = '';
   let orangeIcon;
 
-  let activeFilter = 'all';
-
   function flyTo(lat, lng, zoom) {
     if (map) {
       map.flyTo([lat, lng], zoom, { duration: 1.2 });
     }
-  }
-
-  function handleFilterClick(filter) {
-    activeFilter = filter;
-    const c = cityFilterCoords[filter] || cityFilterCoords.all;
-    flyTo(c[0], c[1], c[2]);
   }
 
   $: filteredRegions = searchQuery 
@@ -33,7 +26,6 @@
       const response = await fetch('https://docs.google.com/spreadsheets/d/1M52gDOvkoXZtCA7RSmHM1vy4ksO6H5fdQQ-twAkRqKk/export?format=csv&gid=0');
       const text = await response.text();
       
-      // Basic CSV parser that handles simple quoting
       const rows = text.split('\r\n').map(row => {
         const result = [];
         let current = '';
@@ -77,7 +69,7 @@
         markers.clearLayers();
         agencies.forEach(a => {
           const m = L.marker([a.lat, a.lng], { icon: orangeIcon })
-            .bindPopup(`<div style="font-family:Roboto,sans-serif;min-width:180px"><strong style="color:#FF9900;font-family:Montserrat,sans-serif;display:block;margin-bottom:4px">${a.n}</strong><small style="color:#666;line-height:1.4;display:block">${a.address || 'Point Relais Jumia'}</small></div>`);
+            .bindPopup(`<div style="font-family:'Montserrat',sans-serif;min-width:180px;padding:8px"><strong style="color:#FF9900;display:block;margin-bottom:6px;font-size:14px">${a.n}</strong><p style="color:#444;line-height:1.4;margin:0;font-size:12px">${a.address || 'Point Relais Jumia'}</p></div>`);
           markers.addLayer(m);
         });
         if (agencies.length > 0) {
@@ -90,105 +82,236 @@
   }
 
   onMount(() => {
-    if (typeof L === 'undefined') return;
+    map = L.map('jumiaMap', { 
+      zoomControl: false,
+      attributionControl: false 
+    }).setView([7.0, -5.5], 6);
 
-    map = L.map('jumiaMap', { zoomControl: true }).setView([7.0, -5.5], 6);
+    L.control.zoom({ position: 'topright' }).addTo(map);
 
     L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/">CARTO</a>',
       subdomains: 'abcd', maxZoom: 19
     }).addTo(map);
 
     orangeIcon = L.divIcon({
-      className: '',
-      html: '<div style="width:22px;height:22px;border-radius:50% 50% 50% 0;background:#FF9900;transform:rotate(-45deg);border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3)"><div style="width:7px;height:7px;background:#fff;border-radius:50%;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)"></div></div>',
-      iconSize: [22, 22], iconAnchor: [11, 22], popupAnchor: [0, -24]
+      className: 'custom-pin',
+      html: '<div class="pin-wrap"><div class="pin-inner"></div></div>',
+      iconSize: [28, 28], iconAnchor: [14, 28], popupAnchor: [0, -28]
     });
 
     markers = L.featureGroup().addTo(map);
-    
     fetchSheetData();
+
+    // Ensure map resizes correctly
+    setTimeout(() => {
+      map.invalidateSize();
+    }, 200);
   });
 </script>
 
 <div class="map-finder-section" id="finder">
-  <div class="map-finder-header">
-    <h2>Nos Points Relais &amp; Zones d'Expédition</h2>
-    <p>Plus de 150 Points Relais, déposer un colis est aussi simple que de marcher dans la rue.</p>
-    <div class="city-filters">
-      {#each Object.keys(cityFilterCoords) as filter}
-        <button 
-          class="city-filter {activeFilter === filter ? 'active' : ''}" 
-          on:click={() => handleFilterClick(filter)}
-        >
-          {#if filter === 'all'}Toutes les villes
-          {:else if filter === 'abidjan'}Abidjan
-          {:else if filter === 'yamoussoukro'}Yamoussoukro
-          {:else if filter === 'bouake'}Bouaké
-          {:else if filter === 'sanpedro'}San Pedro
-          {:else if filter === 'other'}+100 Autres Villes
-          {/if}
-        </button>
-      {/each}
-    </div>
-  </div>
-
-  <div class="map-finder-body">
-    <div class="map-left-panel">
-      <div class="map-search-wrap">
-        <span class="map-search-icon">🔍</span>
-        <input bind:value={searchQuery} type="search" placeholder="Chercher une ville ou une localité..."/>
+  <div class="map-container">
+    <div class="map-sidebar">
+      <div class="search-box">
+        <div class="search-input-wrap">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input 
+            bind:value={searchQuery} 
+            type="text" 
+            placeholder="Chercher une ville ou une localité..."
+          />
+        </div>
       </div>
 
-      <div class="region-list">
+      <div class="region-list-container">
         {#each filteredRegions as region}
-          <div class="region-item">
-            <button class="region-btn" on:click={() => flyTo(region.lat, region.lng, region.zoom)}>
-              <span>{region.name}</span>
-              <span class="region-plus">+</span>
-            </button>
-          </div>
+          <button class="region-item" on:click={() => flyTo(region.lat, region.lng, region.zoom)}>
+            <span class="region-name">{region.name}</span>
+            <span class="plus-icon">+</span>
+          </button>
         {/each}
       </div>
     </div>
 
-    <div class="map-right-panel">
+    <div class="map-canvas-wrap">
       <div id="jumiaMap"></div>
     </div>
   </div>
 </div>
 
 <style>
-  .map-finder-section { max-width: 1200px; margin: 52px auto 0; padding: 0 32px; }
-  .map-finder-header { text-align: center; margin-bottom: 32px; }
-  .map-finder-header h2 { font-family: 'Montserrat', sans-serif; font-size: 1.9rem; font-weight: 800; margin-bottom: 10px; }
-  .map-finder-header p { font-size: .95rem; color: var(--mid); margin-bottom: 24px; }
-  .city-filters { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
-  .city-filter { background: var(--white); border: 1px solid var(--border); border-radius: 50px; padding: 8px 20px; font-family: 'Montserrat', sans-serif; font-size: .82rem; font-weight: 600; color: var(--mid); cursor: pointer; transition: all .2s; }
-  .city-filter:hover { border-color: var(--orange); color: var(--orange-dk); }
-  .city-filter.active { background: var(--orange); border-color: var(--orange); color: var(--dark); }
-  .map-finder-body { display: flex; gap: 0; border-radius: var(--r-lg); overflow: hidden; box-shadow: var(--sh-lg); border: 1px solid var(--border); height: 580px; }
-  .map-left-panel { width: 340px; min-width: 300px; background: var(--white); display: flex; flex-direction: column; flex-shrink: 0; border-right: 1px solid var(--border); }
-  .map-search-wrap { position: relative; padding: 16px 16px 12px; }
-  .map-search-icon { position: absolute; left: 28px; top: 50%; transform: translateY(-50%); color: var(--mid); font-size: .9rem; pointer-events: none; }
-  
-  input[type="search"] { width: 100%; background: var(--warm-grey); border: 1px solid var(--border); border-radius: 50px; padding: 10px 16px 10px 36px; font-family: 'Roboto', sans-serif; font-size: .85rem; color: var(--dark); outline: none; transition: border-color .2s; }
-  input[type="search"]:focus { border-color: var(--orange); }
+  .map-finder-section {
+    max-width: 1240px;
+    margin: 80px auto;
+    padding: 0 20px;
+    width: 100%;
+  }
 
-  .region-list { flex: 1; overflow-y: auto; padding: 0 0 8px; }
-  .region-list::-webkit-scrollbar { width: 4px; }
-  .region-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-  .region-item { border-bottom: 1px solid var(--border); }
-  .region-btn { width: 100%; background: none; border: none; padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; cursor: pointer; text-align: left; font-family: 'Roboto', sans-serif; font-size: .84rem; font-weight: 500; color: var(--dark); transition: background .15s, color .15s; }
-  .region-btn:hover { background: var(--orange-lt); color: var(--orange-dk); }
-  .region-plus { font-size: 1.1rem; color: var(--border); flex-shrink: 0; transition: color .15s; }
-  .map-right-panel { flex: 1; min-width: 0; }
-  #jumiaMap { width: 100%; height: 100%; }
+  .map-container {
+    display: flex;
+    background: #F3EFE6;
+    border-radius: 32px;
+    overflow: hidden;
+    box-shadow: 0 30px 90px rgba(0,0,0,0.08);
+    height: 700px;
+    border: 1px solid rgba(0,0,0,0.05);
+    width: 100%;
+  }
 
-  @media (max-width: 800px) {
-    .map-finder-body { flex-direction: column; height: auto; }
-    .map-left-panel { width: 100%; border-right: none; border-bottom: 1px solid var(--border); max-height: 260px; }
-    #jumiaMap { height: 380px; }
-    .map-finder-section { padding: 0 16px; }
+  /* Sidebar */
+  .map-sidebar {
+    width: 380px;
+    min-width: 380px;
+    display: flex;
+    flex-direction: column;
+    background: #F3EFE6;
+    border-right: 1px solid rgba(0,0,0,0.06);
+    z-index: 10;
+  }
+
+  .search-box {
+    padding: 24px 20px;
+  }
+
+  .search-input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .search-icon {
+    position: absolute;
+    left: 18px;
+    width: 18px;
+    height: 18px;
+    color: #4A90E2;
+  }
+
+  .search-box input {
+    width: 100%;
+    height: 52px;
+    background: rgba(0,0,0,0.05);
+    border: none;
+    border-radius: 26px;
+    padding: 0 20px 0 50px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: #444;
+    outline: none;
+    transition: background 0.2s;
+  }
+
+  .search-box input:focus {
+    background: rgba(0,0,0,0.08);
+  }
+
+  .region-list-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 0 20px;
+  }
+
+  .region-list-container::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .region-list-container::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,0.1);
+    border-radius: 10px;
+  }
+
+  .region-item {
+    width: 100%;
+    background: none;
+    border: none;
+    border-bottom: 1px solid rgba(0,0,0,0.03);
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.2s;
+  }
+
+  .region-item:hover {
+    background: rgba(255,255,255,0.4);
+  }
+
+  .region-name {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14.5px;
+    font-weight: 700;
+    color: #1A1A1A;
+    line-height: 1.4;
+  }
+
+  .plus-icon {
+    font-size: 20px;
+    color: #E0D7C6;
+    font-weight: 300;
+    margin-left: 12px;
+  }
+
+  /* Map Canvas */
+  .map-canvas-wrap {
+    flex: 1;
+    background: #f8f8f8;
+    position: relative;
+  }
+
+  #jumiaMap {
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Custom Leaflet Pin */
+  :global(.custom-pin) {
+    background: none !important;
+    border: none !important;
+  }
+
+  :global(.pin-wrap) {
+    width: 28px;
+    height: 28px;
+    background: #FF9900;
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    border: 3px solid #FFF;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  :global(.pin-inner) {
+    width: 8px;
+    height: 8px;
+    background: #FFF;
+    border-radius: 50%;
+  }
+
+  @media (max-width: 900px) {
+    .map-container {
+      flex-direction: column;
+      height: auto;
+      border-radius: 24px;
+    }
+
+    .map-sidebar {
+      width: 100%;
+      min-width: 100%;
+      height: 400px;
+      border-right: none;
+      border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .map-canvas-wrap {
+      height: 450px;
+    }
   }
 </style>

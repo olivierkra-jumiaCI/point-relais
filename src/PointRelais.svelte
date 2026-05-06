@@ -29,7 +29,7 @@
   <InfoBanner />
   <FeaturedCities cities={featuredCities} />
   <HowItWorks {steps} />
-  <MapFinder agencies={agences} {regions} {cityFilterCoords} />
+  <MapFinder agencies={agences} {regions} />
   <InfoCards />
   <ZonesTable />
   <FAQ {faqs} />
