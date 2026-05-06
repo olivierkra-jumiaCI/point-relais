@@ -250,12 +250,7 @@
                 {#each region.agencies as agency}
                   <button class="agency-item" on:click={() => handleAgencyClick(agency)}>
                     <div class="agency-info">
-                      <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-                        <strong class="agency-name">{agency.n}</strong>
-                        {#if agency.grosColis && agency.grosColis.trim().toLowerCase() === 'non'}
-                          <span style="background: #fee2e2; color: #dc2626; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; white-space: nowrap; border: 1px solid #fecaca;">PAS DE GROS COLIS</span>
-                        {/if}
-                      </div>
+                      <strong class="agency-name">{agency.n}</strong>
                       <p class="agency-addr">{agency.address}</p>
                     </div>
                   </button>
