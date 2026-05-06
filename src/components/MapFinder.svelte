@@ -10,6 +10,17 @@
   let markers;
   let searchQuery = '';
   let orangeIcon;
+  let expandedRegion = null;
+  let markerMap = new Map();
+
+  function toggleRegion(regionName, lat, lng, zoom) {
+    if (expandedRegion === regionName) {
+      expandedRegion = null;
+    } else {
+      expandedRegion = regionName;
+      flyTo(lat, lng, zoom);
+    }
+  }
 
   function flyTo(lat, lng, zoom) {
     if (map) {
@@ -17,9 +28,37 @@
     }
   }
 
-  $: filteredRegions = searchQuery 
-    ? regions.filter(r => r.name.toLowerCase().includes(searchQuery.toLowerCase()))
-    : regions;
+  function handleAgencyClick(agency) {
+    if (map) {
+      map.flyTo([agency.lat, agency.lng], 15, { duration: 1 });
+      const marker = markerMap.get(agency.n);
+      if (marker) {
+        marker.openPopup();
+      }
+    }
+  }
+
+  $: filteredAgencies = agencies.filter(a => 
+    a.n.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (a.address || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (a.region || '').toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  $: filteredRegions = regions.map(region => {
+    const agenciesInRegion = filteredAgencies.filter(a => a.region === region.name);
+    return {
+      ...region,
+      agencies: agenciesInRegion,
+      visible: agenciesInRegion.length > 0 || region.name.toLowerCase().includes(searchQuery.toLowerCase())
+    };
+  }).filter(r => r.visible);
+
+  // Auto-expand if searching
+  $: if (searchQuery.length > 0 && filteredRegions.length > 0) {
+    if (!expandedRegion || !filteredRegions.find(r => r.name === expandedRegion)) {
+      expandedRegion = filteredRegions[0].name;
+    }
+  }
 
   async function fetchSheetData() {
     try {
@@ -47,37 +86,76 @@
       if (rows.length < 2) return;
       const headers = rows[0].map(h => h.trim());
       
+      const regionIdx = headers.indexOf('region');
       const pusIdx = headers.indexOf('pus');
       const longlatIdx = headers.indexOf('longlat');
       const statusIdx = headers.indexOf('statut');
       const addressIdx = headers.indexOf('adresse');
+      const mapLinkIdx = headers.indexOf('map');
 
       agencies = rows.slice(1)
         .filter(row => row[statusIdx] === 'Live')
         .map(row => {
           const [lat, lng] = (row[longlatIdx] || '').split(',').map(Number);
           return {
+            region: row[regionIdx],
             n: row[pusIdx],
             lat,
             lng,
-            address: row[addressIdx]
+            address: row[addressIdx],
+            mapLink: row[mapLinkIdx]
           };
         })
         .filter(a => !isNaN(a.lat) && !isNaN(a.lng));
 
-      if (markers && map) {
-        markers.clearLayers();
-        agencies.forEach(a => {
-          const m = L.marker([a.lat, a.lng], { icon: orangeIcon })
-            .bindPopup(`<div style="font-family:'Montserrat',sans-serif;min-width:180px;padding:8px"><strong style="color:#FF9900;display:block;margin-bottom:6px;font-size:14px">${a.n}</strong><p style="color:#444;line-height:1.4;margin:0;font-size:12px">${a.address || 'Point Relais Jumia'}</p></div>`);
-          markers.addLayer(m);
-        });
-        if (agencies.length > 0) {
-          map.fitBounds(markers.getBounds().pad(0.1));
-        }
-      }
+      updateMarkers();
     } catch (e) {
       console.error('Error fetching sheet data:', e);
+    }
+  }
+
+  function updateMarkers() {
+    if (markers && map) {
+      markers.clearLayers();
+      markerMap.clear();
+      agencies.forEach(a => {
+        const popupContent = `
+          <div class="custom-popup">
+            <div class="popup-header">
+              <strong>${a.n}</strong>
+            </div>
+            <p class="popup-address">${a.address || 'Point Relais Jumia'}</p>
+            <div class="popup-info">
+              <div class="info-item">
+                <span class="info-icon">🕒</span>
+                <div>
+                  <strong>Horaires</strong>
+                  <span>Lun-Ven: 8h-18h | Sam: 9h-17h</span>
+                </div>
+              </div>
+              <div class="info-item">
+                <span class="info-icon">📞</span>
+                <div>
+                  <strong>Contact</strong>
+                  <span>25 20 00 61 61</span>
+                </div>
+              </div>
+            </div>
+            <a href="${a.mapLink && a.mapLink.startsWith('http') ? a.mapLink : 'https://' + a.mapLink}" target="_blank" class="google-maps-btn">
+              <span class="btn-icon">📍</span> Ouvrir sur Google Maps
+            </a>
+          </div>
+        `;
+
+        const m = L.marker([a.lat, a.lng], { icon: orangeIcon })
+          .bindPopup(popupContent, { maxWidth: 300, minWidth: 260 });
+        
+        markers.addLayer(m);
+        markerMap.set(a.n, m);
+      });
+      if (agencies.length > 0) {
+        map.fitBounds(markers.getBounds().pad(0.1));
+      }
     }
   }
 
@@ -102,7 +180,6 @@
     markers = L.featureGroup().addTo(map);
     fetchSheetData();
 
-    // Ensure map resizes correctly
     setTimeout(() => {
       map.invalidateSize();
     }, 200);
@@ -128,10 +205,28 @@
 
       <div class="region-list-container">
         {#each filteredRegions as region}
-          <button class="region-item" on:click={() => flyTo(region.lat, region.lng, region.zoom)}>
-            <span class="region-name">{region.name}</span>
-            <span class="plus-icon">+</span>
-          </button>
+          <div class="region-accordion">
+            <button 
+              class="region-header {expandedRegion === region.name ? 'expanded' : ''}" 
+              on:click={() => toggleRegion(region.name, region.lat, region.lng, region.zoom)}
+            >
+              <span class="region-name">{region.name}</span>
+              <span class="accordion-icon">{expandedRegion === region.name ? '−' : '+'}</span>
+            </button>
+            
+            {#if expandedRegion === region.name}
+              <div class="agency-list">
+                {#each region.agencies as agency}
+                  <button class="agency-item" on:click={() => handleAgencyClick(agency)}>
+                    <div class="agency-info">
+                      <strong class="agency-name">{agency.n}</strong>
+                      <p class="agency-addr">{agency.address}</p>
+                    </div>
+                  </button>
+                {/each}
+              </div>
+            {/if}
+          </div>
         {/each}
       </div>
     </div>
@@ -143,6 +238,82 @@
 </div>
 
 <style>
+  :global(.leaflet-popup-content-wrapper) {
+    border-radius: 16px;
+    padding: 0;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  }
+  :global(.leaflet-popup-content) {
+    margin: 0;
+    width: auto !important;
+  }
+  :global(.custom-popup) {
+    padding: 20px;
+    font-family: 'Montserrat', sans-serif;
+  }
+  :global(.popup-header strong) {
+    display: block;
+    font-size: 16px;
+    color: #1A1A1A;
+    margin-bottom: 8px;
+  }
+  :global(.popup-address) {
+    font-size: 13px;
+    color: #666;
+    line-height: 1.4;
+    margin: 0 0 16px;
+  }
+  :global(.popup-info) {
+    border-top: 1px solid #EEE;
+    padding-top: 16px;
+    margin-bottom: 20px;
+  }
+  :global(.info-item) {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  :global(.info-icon) {
+    font-size: 18px;
+    background: #F8F8F8;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+  }
+  :global(.info-item div) {
+    display: flex;
+    flex-direction: column;
+  }
+  :global(.info-item strong) {
+    font-size: 12px;
+    color: #1A1A1A;
+  }
+  :global(.info-item span) {
+    font-size: 12px;
+    color: #666;
+  }
+  :global(.google-maps-btn) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: #111827;
+    color: white !important;
+    text-decoration: none;
+    padding: 12px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    transition: background 0.2s;
+  }
+  :global(.google-maps-btn:hover) {
+    background: #1F2937;
+  }
+
   .map-finder-section {
     max-width: 1240px;
     margin: 80px auto;
@@ -205,31 +376,28 @@
     transition: background 0.2s;
   }
 
-  .search-box input:focus {
-    background: rgba(0,0,0,0.08);
-  }
-
   .region-list-container {
     flex: 1;
     overflow-y: auto;
-    padding: 0 0 20px;
+    padding: 0 16px 20px;
   }
 
-  .region-list-container::-webkit-scrollbar {
-    width: 6px;
+  .region-list-container::-webkit-scrollbar { width: 6px; }
+  .region-list-container::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
+
+  .region-accordion {
+    margin-bottom: 12px;
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
   }
 
-  .region-list-container::-webkit-scrollbar-thumb {
-    background: rgba(0,0,0,0.1);
-    border-radius: 10px;
-  }
-
-  .region-item {
+  .region-header {
     width: 100%;
-    background: none;
+    background: white;
     border: none;
-    border-bottom: 1px solid rgba(0,0,0,0.03);
-    padding: 20px 24px;
+    padding: 18px 20px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -238,24 +406,47 @@
     transition: background 0.2s;
   }
 
-  .region-item:hover {
-    background: rgba(255,255,255,0.4);
+  .region-header.expanded {
+    border-bottom: 1px solid #F3F4F6;
   }
 
   .region-name {
     font-family: 'Montserrat', sans-serif;
-    font-size: 14.5px;
+    font-size: 14px;
     font-weight: 700;
-    color: #1A1A1A;
-    line-height: 1.4;
+    color: #111;
+    line-height: 1.3;
+    max-width: 85%;
   }
 
-  .plus-icon {
+  .accordion-icon {
     font-size: 20px;
-    color: #E0D7C6;
+    color: #9CA3AF;
     font-weight: 300;
-    margin-left: 12px;
   }
+
+  .agency-list {
+    background: white;
+    max-height: 400px;
+    overflow-y: auto;
+  }
+
+  .agency-item {
+    width: 100%;
+    background: none;
+    border: none;
+    padding: 14px 20px;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.15s;
+    border-bottom: 1px solid #F9FAFB;
+  }
+
+  .agency-item:hover { background: #F3F4F6; }
+
+  .agency-info { display: flex; flex-direction: column; gap: 4px; }
+  .agency-name { font-family: 'Montserrat', sans-serif; font-size: 13.5px; font-weight: 700; color: #1F2937; }
+  .agency-addr { font-size: 12px; color: #6B7280; line-height: 1.4; }
 
   /* Map Canvas */
   .map-canvas-wrap {
@@ -264,17 +455,10 @@
     position: relative;
   }
 
-  #jumiaMap {
-    width: 100%;
-    height: 100%;
-  }
+  #jumiaMap { width: 100%; height: 100%; }
 
   /* Custom Leaflet Pin */
-  :global(.custom-pin) {
-    background: none !important;
-    border: none !important;
-  }
-
+  :global(.custom-pin) { background: none !important; border: none !important; }
   :global(.pin-wrap) {
     width: 28px;
     height: 28px;
@@ -287,31 +471,11 @@
     align-items: center;
     justify-content: center;
   }
-
-  :global(.pin-inner) {
-    width: 8px;
-    height: 8px;
-    background: #FFF;
-    border-radius: 50%;
-  }
+  :global(.pin-inner) { width: 8px; height: 8px; background: #FFF; border-radius: 50%; }
 
   @media (max-width: 900px) {
-    .map-container {
-      flex-direction: column;
-      height: auto;
-      border-radius: 24px;
-    }
-
-    .map-sidebar {
-      width: 100%;
-      min-width: 100%;
-      height: 400px;
-      border-right: none;
-      border-bottom: 1px solid rgba(0,0,0,0.05);
-    }
-
-    .map-canvas-wrap {
-      height: 450px;
-    }
+    .map-container { flex-direction: column; height: auto; border-radius: 24px; }
+    .map-sidebar { width: 100%; min-width: 100%; height: 450px; border-right: none; border-bottom: 1px solid rgba(0,0,0,0.05); }
+    .map-canvas-wrap { height: 400px; }
   }
 </style>
