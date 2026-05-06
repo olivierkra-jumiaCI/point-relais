@@ -92,6 +92,7 @@
       const statusIdx = headers.indexOf('statut');
       const addressIdx = headers.indexOf('adresse');
       const mapLinkIdx = headers.indexOf('map');
+      const grosColisIdx = headers.indexOf('groscolis');
 
       agencies = rows.slice(1)
         .filter(row => row[statusIdx] === 'Live')
@@ -103,7 +104,8 @@
             lat,
             lng,
             address: row[addressIdx],
-            mapLink: row[mapLinkIdx]
+            mapLink: row[mapLinkIdx],
+            grosColis: row[grosColisIdx]
           };
         })
         .filter(a => !isNaN(a.lat) && !isNaN(a.lng));
@@ -124,6 +126,11 @@
             <div class="popup-header">
               <strong>${a.n}</strong>
             </div>
+            ${a.grosColis && a.grosColis.trim().toLowerCase() === 'non' ? `
+              <div style="background: #fee2e2; color: #dc2626; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; border: 1px solid #fecaca;">
+                <span style="font-size: 14px;">⚠️</span> Gros colis non accepté
+              </div>
+            ` : ''}
             <p class="popup-address">${a.address || 'Point Relais Jumia'}</p>
             <div class="popup-info">
               <div class="info-item">
@@ -243,7 +250,12 @@
                 {#each region.agencies as agency}
                   <button class="agency-item" on:click={() => handleAgencyClick(agency)}>
                     <div class="agency-info">
-                      <strong class="agency-name">{agency.n}</strong>
+                      <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                        <strong class="agency-name">{agency.n}</strong>
+                        {#if agency.grosColis && agency.grosColis.trim().toLowerCase() === 'non'}
+                          <span style="background: #fee2e2; color: #dc2626; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; white-space: nowrap; border: 1px solid #fecaca;">PAS DE GROS COLIS</span>
+                        {/if}
+                      </div>
                       <p class="agency-addr">{agency.address}</p>
                     </div>
                   </button>
