@@ -14,30 +14,30 @@
       <tbody>
         <tr>
           <td>Abidjan</td>
-          <td>Cocody, Plateau, Yopougon, Abobo, Marcory, Port-Bouet…</td>
-          <td><span class="badge badge-green">1 – 2 jours</span></td>
-          <td><span class="badge badge-orange">Même jour</span></td>
+          <td>Treichville, Abobo, Adjamé, Cocody, Yopougon, Bingerville, Marcory, Koumassi, Plateau, Port-Bouet.</td>
+          <td><span class="badge badge-orange">2 – 3 jours</span></td>
+          <td><span class="badge badge-green">1 jour</span></td>
           <td><span class="badge badge-green">✓ Oui</span></td>
         </tr>
         <tr>
           <td>Grandes villes</td>
-          <td>Bouaké, Daloa, San-Pédro, Korhogo, Man, Yamoussoukro…</td>
-          <td><span class="badge badge-orange">2 – 3 jours</span></td>
-          <td><span class="badge badge-grey">1 – 2 jours</span></td>
+          <td>Aboisso, Agboville, Anyama, Azaguié, Bouaké, Dabou, Grand-Bassam, N'Douci, Sikensi, Tiassalé, Yamoussoukro.</td>
+          <td><span class="badge badge-grey">3 – 4 jours</span></td>
+          <td><span class="badge badge-orange">1 – 2 jours</span></td>
           <td><span class="badge badge-green">✓ Oui</span></td>
         </tr>
         <tr>
           <td>Villes secondaires</td>
-          <td>Abengourou, Divo, Gagnoa, Bondoukou, Soubré…</td>
-          <td><span class="badge badge-grey">3 – 4 jours</span></td>
+          <td>Abengourou, Daloa, Korhogo, San-Pédro, Man, Divo, Gagnoa, Bondoukou, Soubré, Ferké, Issia, Katiola...</td>
+          <td><span class="badge badge-grey">4 – 5 jours</span></td>
           <td><span class="badge badge-grey">2 – 3 jours</span></td>
           <td><span class="badge badge-green">✓ Oui</span></td>
         </tr>
         <tr>
           <td>Zones rurales</td>
-          <td>Tabou, Grand-Béréby, Touba, Bouna, Tingrela…</td>
+          <td>Tabou, Grand-Béréby, Touba, Bouna, Tingrela, Guiglo, Danané, Odienné, Boundiali, Adiaké...</td>
           <td><span class="badge badge-red">4 – 6 jours</span></td>
-          <td><span class="badge badge-grey">Non dispo.</span></td>
+          <td><span class="badge badge-grey">4 – 5 jours</span></td>
           <td><span class="badge badge-orange">Variable</span></td>
         </tr>
       </tbody>
