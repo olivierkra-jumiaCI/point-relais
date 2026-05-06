@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "$lib": ["src/lib"],
+      "$lib/*": ["src/lib/*"],
+      "$components": ["src/components"],
+      "$components/*": ["src/components/*"]
+    },
+    "module": "esnext",
+    "moduleResolution": "node",
+    "target": "esnext",
+    "checkJs": true,
+    "jsx": "preserve"
+  },
+  "include": ["src/**/*.d.ts", "src/**/*.js", "src/**/*.svelte"]
+}
