@@ -415,7 +415,7 @@
 
   .map-container {
     display: flex;
-    background: #F3EFE6;
+    background: var(--white);
     border-radius: 32px;
     overflow: hidden;
     box-shadow: 0 30px 90px rgba(0,0,0,0.08);
@@ -430,7 +430,7 @@
     min-width: 380px;
     display: flex;
     flex-direction: column;
-    background: #F3EFE6;
+    background: var(--white);
     border-right: 1px solid rgba(0,0,0,0.06);
     z-index: 10;
   }
