@@ -9,7 +9,7 @@
 </div>
 
 <style>
-  .info-banner { max-width: 1200px; margin: 40px auto 0; padding: 0 32px; }
+  .info-banner { max-width: 1200px; margin: 24px auto 0; padding: 0 32px; }
   .info-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 28px 32px; display: flex; align-items: center; gap: 24px; box-shadow: var(--sh); }
   .info-icon { width: 56px; height: 56px; border-radius: var(--r); background: var(--orange-lt); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 1.6rem; }
   .info-text h3 { font-family: 'Montserrat', sans-serif; font-size: 1rem; font-weight: 700; margin-bottom: 6px; }

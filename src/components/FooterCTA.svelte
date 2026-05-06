@@ -9,7 +9,7 @@
 </div>
 
 <style>
-  .footer-cta { max-width: 1200px; margin: 52px auto 64px; padding: 0 32px; }
+  .footer-cta { max-width: 1200px; margin: 32px auto 48px; padding: 0 32px; }
   .footer-cta-inner { background: var(--orange); border-radius: var(--r-lg); padding: 48px 40px; display: flex; align-items: center; justify-content: space-between; gap: 24px; position: relative; overflow: hidden; }
   .footer-cta-inner::before { content: '📦'; position: absolute; right: 200px; top: 50%; transform: translateY(-50%); font-size: 8rem; opacity: .08; pointer-events: none; }
   .footer-cta h2 { font-family: 'Montserrat', sans-serif; font-size: 1.6rem; font-weight: 800; color: var(--dark); margin-bottom: 8px; }

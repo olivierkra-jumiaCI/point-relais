@@ -180,9 +180,21 @@
     markers = L.featureGroup().addTo(map);
     fetchSheetData();
 
-    setTimeout(() => {
-      map.invalidateSize();
-    }, 200);
+    // Multiple invalidateSize calls to handle Android/mobile layout shifts
+    [100, 300, 600, 1200].forEach(delay => {
+      setTimeout(() => {
+        if (map) map.invalidateSize();
+      }, delay);
+    });
+
+    // Use ResizeObserver to re-trigger invalidateSize when container resizes
+    const mapEl = document.getElementById('jumiaMap');
+    if (mapEl && typeof ResizeObserver !== 'undefined') {
+      const ro = new ResizeObserver(() => {
+        if (map) map.invalidateSize();
+      });
+      ro.observe(mapEl);
+    }
   });
 </script>
 
@@ -352,7 +364,7 @@
 
   .map-finder-section {
     max-width: 1240px;
-    margin: 80px auto;
+    margin: 40px auto;
     padding: 0 20px;
     width: 100%;
   }
@@ -555,7 +567,14 @@
 
   @media (max-width: 900px) {
     .map-container { flex-direction: column; height: auto; border-radius: 24px; }
-    .map-sidebar { width: 100%; min-width: 100%; height: 450px; border-right: none; border-bottom: 1px solid rgba(0,0,0,0.05); }
-    .map-canvas-wrap { height: 400px; }
+    .map-sidebar { width: 100%; min-width: 100%; height: 350px; border-right: none; border-bottom: 1px solid rgba(0,0,0,0.05); }
+    .map-canvas-wrap { height: 350px; min-height: 350px; }
+    #jumiaMap { width: 100%; height: 350px !important; min-height: 350px; }
+  }
+  @media (max-width: 600px) {
+    .map-finder-section { margin: 24px auto; padding: 0 16px; }
+    .map-canvas-wrap { height: 300px; min-height: 300px; }
+    #jumiaMap { height: 300px !important; min-height: 300px; }
+    .map-sidebar { height: 300px; }
   }
 </style>
