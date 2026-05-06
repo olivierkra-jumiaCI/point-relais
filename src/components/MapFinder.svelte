@@ -201,7 +201,7 @@
 <div class="map-finder-section" id="finder">
   <div class="map-finder-header">
     <h2>Nos Points Relais &amp; Zones d'Expédition</h2>
-    <p>Plus de 231 Points Relais, déposer un colis est aussi simple que de marcher dans la rue.</p>
+    <p>Plus de 200 Points Relais, déposer un colis est aussi simple que de marcher dans la rue.</p>
     <div class="city-filters">
       <button class="city-filter {searchQuery === 'Abidjan' ? 'active' : ''}" on:click={() => searchQuery = 'Abidjan'}>Abidjan</button>
       <button class="city-filter {searchQuery === 'Yamoussoukro' ? 'active' : ''}" on:click={() => searchQuery = 'Yamoussoukro'}>Yamoussoukro</button>
