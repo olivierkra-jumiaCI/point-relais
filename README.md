@@ -4,7 +4,7 @@ Application Svelte pour la gestion et l'affichage des agences et points relais J
 
 ## Structure du projet
 
-- `PointRelais.svelte` : Composant principal.
+- `src/PointRelais.svelte` : Composant principal.
 - `src/components/` : Composants UI modulaires.
 - `src/lib/data.js` : Données statiques (agences, régions, FAQs).
 - `src/index.css` : Styles globaux.

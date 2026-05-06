@@ -1,4 +1,4 @@
-import PointRelais from '../PointRelais.svelte';
+import PointRelais from './PointRelais.svelte';
 
 const app = new PointRelais({
   target: document.getElementById('app'),
