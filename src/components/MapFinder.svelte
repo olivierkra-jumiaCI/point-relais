@@ -137,7 +137,7 @@
                 <span class="info-icon">🕒</span>
                 <div>
                   <strong>Horaires</strong>
-                  <span>Lun-Ven: 8h-18h | Sam: 9h-17h</span>
+                  <span>Du Lundi au Samedi : 08h – 18h - Fermée les dimanches et jours fériés nationaux.</span>
                 </div>
               </div>
               <div class="info-item">
