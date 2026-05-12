@@ -15,7 +15,8 @@
       <p>Une question sur votre retrait ou retour ?</p><br/>
       <span class="big-val">25 20 00 61 61</span>
       <span class="val-label">Centre d'appel Jumia CI</span><br/><br/>
-      <p>Disponible du Lundi au Samedi de 8h à 18h.</p>
+      <p>Disponible par appel : du lundi au vendredi de 8h à 18h.<br/>
+      Par Chat direct : du lundi au vendredi de 8h à 19h et le samedi de 10h à 17h.</p>
     </div>
     <div class="icard red">
       <span class="icard-icon">📦</span>
