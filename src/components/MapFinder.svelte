@@ -1,5 +1,5 @@
 <script>
-  import { onMount } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
   import L from 'leaflet';
   import 'leaflet/dist/leaflet.css';
 
@@ -12,6 +12,34 @@
   let orangeIcon;
   let expandedRegion = null;
   let markerMap = new Map();
+  let lastUpdateTimestamp = null;
+  let isUpdating = false;
+  let refreshInterval;
+
+  function normalizeStr(str) {
+    return (str || '').toString().trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  }
+
+  $: allRegions = (() => {
+    const regionMap = new Map();
+    regions.forEach(r => {
+      regionMap.set(normalizeStr(r.name), { ...r });
+    });
+    agencies.forEach(a => {
+      if (a.region) {
+        const norm = normalizeStr(a.region);
+        if (!regionMap.has(norm)) {
+          regionMap.set(norm, {
+            name: a.region,
+            lat: a.lat || 7.0,
+            lng: a.lng || -5.5,
+            zoom: 10
+          });
+        }
+      }
+    });
+    return Array.from(regionMap.values());
+  })();
 
   function toggleRegion(regionName, lat, lng, zoom) {
     if (expandedRegion === regionName) {
@@ -39,33 +67,74 @@
   }
 
   $: filteredAgencies = agencies.filter(a => 
-    a.n.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (a.n || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
     (a.address || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
     (a.region || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  $: filteredRegions = regions.map(region => {
-    const agenciesInRegion = filteredAgencies.filter(a => a.region === region.name);
+  $: filteredRegions = allRegions.map(region => {
+    const agenciesInRegion = filteredAgencies.filter(a => normalizeStr(a.region) === normalizeStr(region.name));
     return {
       ...region,
       agencies: agenciesInRegion,
-      visible: agenciesInRegion.length > 0 || region.name.toLowerCase().includes(searchQuery.toLowerCase())
+      visible: agenciesInRegion.length > 0 || normalizeStr(region.name).includes(normalizeStr(searchQuery))
     };
   }).filter(r => r.visible);
 
   // Auto-expand if searching
   $: if (searchQuery.length > 0 && filteredRegions.length > 0) {
-    if (!expandedRegion || !filteredRegions.find(r => r.name === expandedRegion)) {
+    if (!expandedRegion || !filteredRegions.find(r => normalizeStr(r.name) === normalizeStr(expandedRegion))) {
       expandedRegion = filteredRegions[0].name;
     }
   }
 
-  async function fetchSheetData() {
+  function parseCoords(rawLatLong, mapLink) {
+    let lat = NaN;
+    let lng = NaN;
+
+    if (rawLatLong) {
+      const cleaned = rawLatLong.replace(/["']/g, '').trim();
+      const parts = cleaned.split(',').map(s => s.trim());
+      if (parts.length >= 2 && !isNaN(Number(parts[0])) && !isNaN(Number(parts[1]))) {
+        lat = Number(parts[0]);
+        lng = Number(parts[1]);
+        if (lat !== 0 && lng !== 0) return { lat, lng };
+      }
+
+      const dmsMatch = cleaned.match(/(\d+)°\s*(\d+)[']?(\d+\.?\d*)["']?\s*([NS])[\s,]+(\d+)°\s*(\d+)[']?(\d+\.?\d*)["']?\s*([EW])/i);
+      if (dmsMatch) {
+        let dLat = Number(dmsMatch[1]) + Number(dmsMatch[2])/60 + Number(dmsMatch[3])/3600;
+        if (dmsMatch[4].toUpperCase() === 'S') dLat = -dLat;
+        let dLng = Number(dmsMatch[5]) + Number(dmsMatch[6])/60 + Number(dmsMatch[7])/3600;
+        if (dmsMatch[8].toUpperCase() === 'W') dLng = -dLng;
+        if (!isNaN(dLat) && !isNaN(dLng) && dLat !== 0 && dLng !== 0) {
+          return { lat: Number(dLat.toFixed(6)), lng: Number(dLng.toFixed(6)) };
+        }
+      }
+    }
+
+    if (mapLink) {
+      const match = mapLink.match(/(?:@|q=|ll=|\/place\/)([-+]?\d+\.\d+),([-+]?\d+\.\d+)/);
+      if (match) {
+        lat = Number(match[1]);
+        lng = Number(match[2]);
+        if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) return { lat, lng };
+      }
+    }
+
+    return { lat: NaN, lng: NaN };
+  }
+
+  async function fetchSheetData(silent = false) {
+    if (isUpdating) return;
+    isUpdating = true;
     try {
-      const response = await fetch('https://docs.google.com/spreadsheets/d/1M52gDOvkoXZtCA7RSmHM1vy4ksO6H5fdQQ-twAkRqKk/export?format=csv&gid=0');
+      const response = await fetch(`https://docs.google.com/spreadsheets/d/1M52gDOvkoXZtCA7RSmHM1vy4ksO6H5fdQQ-twAkRqKk/export?format=csv&gid=0&_t=${Date.now()}`, {
+        cache: 'no-store'
+      });
       const text = await response.text();
       
-      const rows = text.split('\r\n').map(row => {
+      const rows = text.split(/\r?\n/).map(row => {
         const result = [];
         let current = '';
         let inQuotes = false;
@@ -84,35 +153,44 @@
       });
 
       if (rows.length < 2) return;
-      const headers = rows[0].map(h => h.trim());
+      const headers = rows[0].map(h => h.trim().toLowerCase());
       
-      const regionIdx = headers.indexOf('region');
-      const pusIdx = headers.indexOf('pus');
-      const longlatIdx = headers.indexOf('longlat');
-      const statusIdx = headers.indexOf('statut');
-      const addressIdx = headers.indexOf('adresse');
-      const mapLinkIdx = headers.indexOf('map');
-      const grosColisIdx = headers.indexOf('groscolis');
+      const regionIdx = headers.findIndex(h => h === 'region');
+      const pusIdx = headers.findIndex(h => h === 'pus' || h === 'nom' || h === 'repere');
+      const longlatIdx = headers.findIndex(h => h === 'longlat' || h === 'latlong' || h.includes('long') || h.includes('lat'));
+      const statusIdx = headers.findIndex(h => h === 'statut' || h === 'status' || h === 'état' || h === 'etat');
+      const addressIdx = headers.findIndex(h => h === 'adresse' || h === 'address');
+      const mapLinkIdx = headers.findIndex(h => h === 'map' || h === 'lien' || h === 'link');
+      const grosColisIdx = headers.findIndex(h => h === 'groscolis' || h === 'gros colis');
 
-      agencies = rows.slice(1)
-        .filter(row => row[statusIdx] === 'Live')
+      const liveAgencies = rows.slice(1)
         .map(row => {
-          const [lat, lng] = (row[longlatIdx] || '').split(',').map(Number);
+          const status = statusIdx >= 0 ? (row[statusIdx] || '').trim() : 'Live';
+          const rawLatLong = (row[longlatIdx] || '').replace(/["']/g, '').trim();
+          const mapLink = (row[mapLinkIdx] || '').replace(/["']/g, '').trim();
+          const { lat, lng } = parseCoords(rawLatLong, mapLink);
           return {
-            region: row[regionIdx],
-            n: row[pusIdx],
+            status,
+            region: regionIdx >= 0 ? (row[regionIdx] || '').trim() : '',
+            n: pusIdx >= 0 ? (row[pusIdx] || '').trim() : '',
             lat,
             lng,
-            address: row[addressIdx],
-            mapLink: row[mapLinkIdx],
-            grosColis: row[grosColisIdx]
+            address: addressIdx >= 0 ? (row[addressIdx] || '').trim() : '',
+            mapLink,
+            grosColis: grosColisIdx >= 0 ? (row[grosColisIdx] || '').trim() : ''
           };
         })
-        .filter(a => !isNaN(a.lat) && !isNaN(a.lng));
+        .filter(a => a.status.toLowerCase() === 'live' && a.n && !isNaN(a.lat) && !isNaN(a.lng));
 
-      updateMarkers();
+      if (liveAgencies.length > 0) {
+        agencies = liveAgencies;
+        lastUpdateTimestamp = new Date();
+        updateMarkers();
+      }
     } catch (e) {
       console.error('Error fetching sheet data:', e);
+    } finally {
+      isUpdating = false;
     }
   }
 
@@ -185,7 +263,26 @@
     });
 
     markers = L.featureGroup().addTo(map);
-    fetchSheetData();
+    fetchSheetData(true);
+
+    // Auto-refresh periodically while the page is open
+    refreshInterval = setInterval(() => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        fetchSheetData(true);
+      }
+    }, 45000);
+
+    const handleVisibilityChange = () => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        fetchSheetData(true);
+      }
+    };
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+    }
+    if (typeof window !== 'undefined') {
+      window.addEventListener('focus', () => fetchSheetData(true));
+    }
 
     // Multiple invalidateSize calls to handle Android/mobile layout shifts
     [100, 300, 600, 1200].forEach(delay => {
@@ -203,12 +300,25 @@
       ro.observe(mapEl);
     }
   });
+
+  onDestroy(() => {
+    if (refreshInterval) clearInterval(refreshInterval);
+  });
 </script>
 
 <div class="map-finder-section" id="finder">
   <div class="map-finder-header">
     <h2>Nos Points Relais &amp; Zones d'Expédition</h2>
     <p>Plus de 200 Points Relais, déposer un colis est aussi simple que de marcher dans la rue.</p>
+    <div class="live-sync-bar">
+      <span class="live-badge"><span class="pulse-dot"></span> Données synchronisées en direct avec Google Sheets</span>
+      {#if lastUpdateTimestamp}
+        <span class="update-time">Mis à jour : {lastUpdateTimestamp.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+      {/if}
+      <button class="refresh-btn {isUpdating ? 'spinning' : ''}" on:click={() => fetchSheetData(false)} title="Actualiser maintenant">
+        🔄
+      </button>
+    </div>
     <div class="city-filters">
       <button class="city-filter {searchQuery === 'Abidjan' ? 'active' : ''}" on:click={() => searchQuery = 'Abidjan'}>Abidjan</button>
       <button class="city-filter {searchQuery === 'Yamoussoukro' ? 'active' : ''}" on:click={() => searchQuery = 'Yamoussoukro'}>Yamoussoukro</button>
@@ -391,6 +501,68 @@
     font-size: 16px;
     color: #64748B;
     margin: 0 0 32px;
+  }
+  .live-sync-bar {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    background: #FFF9F0;
+    border: 1px solid #FFD8A8;
+    padding: 8px 18px;
+    border-radius: 50px;
+    margin-bottom: 24px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 13px;
+    color: #333;
+    box-shadow: 0 4px 12px rgba(255, 153, 0, 0.08);
+  }
+  .live-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    color: #D97706;
+  }
+  .pulse-dot {
+    width: 8px;
+    height: 8px;
+    background: #10B981;
+    border-radius: 50%;
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+  }
+  .update-time {
+    color: #64748B;
+    font-size: 12px;
+    border-left: 1px solid #E2E8F0;
+    padding-left: 12px;
+  }
+  .refresh-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 4px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s;
+  }
+  .refresh-btn:hover {
+    transform: scale(1.2);
+  }
+  .refresh-btn.spinning {
+    animation: spin 1s linear infinite;
+  }
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
   }
   .city-filters {
     display: flex;
