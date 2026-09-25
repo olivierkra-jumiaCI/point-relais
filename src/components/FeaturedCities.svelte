@@ -10,7 +10,14 @@
     {#each cities as city}
       <a class="city-card" href={city.link} target="_blank">
         <div class="city-card-overlay">Nouveau</div>
-        <img class="city-card-img" src={city.img} alt={city.name}/>
+        {#if city.img}
+          <img class="city-card-img" src={city.img} alt={city.name}/>
+        {:else}
+          <div class="city-card-img placeholder-bg">
+            <span class="placeholder-icon">📍</span>
+            <span class="placeholder-text">{city.name}</span>
+          </div>
+        {/if}
         <div class="city-card-body">
           <div class="city-card-name">{city.name}</div>
           <span class="city-card-tag">📍 Région de {city.region}</span>
@@ -38,6 +45,29 @@
   .city-card-name { font-family: 'Montserrat', sans-serif; font-size: 1.05rem; font-weight: 700; margin-bottom: 6px; color: var(--dark); }
   .city-card-tag { display: inline-flex; align-items: center; gap: 5px; font-size: .76rem; font-weight: 500; color: var(--mid); background: var(--warm-grey); border-radius: 50px; padding: 3px 10px; }
   .city-card-overlay { position: absolute; top: 12px; right: 12px; background: var(--orange); color: var(--dark); font-family: 'Montserrat', sans-serif; font-size: .72rem; font-weight: 700; border-radius: 50px; padding: 4px 10px; text-transform: uppercase; letter-spacing: .05em; }
+
+  .placeholder-bg {
+    background: linear-gradient(135deg, #F68B1E 0%, #D87005 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+  }
+  .placeholder-icon {
+    font-size: 3rem;
+    margin-bottom: 8px;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+  }
+  .placeholder-text {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 800;
+    text-align: center;
+    padding: 0 15px;
+    line-height: 1.2;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
 
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(28px); }

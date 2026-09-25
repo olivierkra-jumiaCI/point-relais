@@ -12,6 +12,17 @@
   import ZonesTable from './components/ZonesTable.svelte';
   import FAQ from './components/FAQ.svelte';
   import FooterCTA from './components/FooterCTA.svelte';
+
+  let liveAgenciesList = [];
+  
+  $: dynamicFeaturedCities = liveAgenciesList.filter(a => a.nouveau && a.nouveau.toLowerCase() === 'oui').map(a => ({
+    name: a.n,
+    region: a.region,
+    link: a.mapLink && a.mapLink.startsWith('http') ? a.mapLink : 'https://' + (a.mapLink || 'jumia.ci'),
+    img: null
+  }));
+
+  $: displayCities = liveAgenciesList.length > 0 ? dynamicFeaturedCities : featuredCities;
 </script>
 
 <svelte:head>
@@ -27,9 +38,11 @@
   <Hero />
   <Stats {stats} />
   <InfoBanner />
-  <FeaturedCities cities={featuredCities} />
+  {#if displayCities.length > 0}
+    <FeaturedCities cities={displayCities} />
+  {/if}
   <HowItWorks {steps} />
-  <MapFinder agencies={agences} {regions} />
+  <MapFinder agencies={agences} {regions} bind:liveAgenciesList />
   <InfoCards />
   <ZonesTable />
   <FAQ {faqs} />

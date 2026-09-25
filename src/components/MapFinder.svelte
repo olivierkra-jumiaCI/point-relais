@@ -5,6 +5,7 @@
 
   export let agencies = [];
   export let regions = [];
+  export let liveAgenciesList = [];
 
   let map;
   let markers;
@@ -162,6 +163,7 @@
       const addressIdx = headers.findIndex(h => h === 'adresse' || h === 'address');
       const mapLinkIdx = headers.findIndex(h => h === 'map' || h === 'lien' || h === 'link');
       const grosColisIdx = headers.findIndex(h => h === 'groscolis' || h === 'gros colis');
+      const nouveauIdx = headers.findIndex(h => h === 'nouveau' || h === 'new');
 
       const liveAgencies = rows.slice(1)
         .map(row => {
@@ -177,13 +179,15 @@
             lng,
             address: addressIdx >= 0 ? (row[addressIdx] || '').trim() : '',
             mapLink,
-            grosColis: grosColisIdx >= 0 ? (row[grosColisIdx] || '').trim() : ''
+            grosColis: grosColisIdx >= 0 ? (row[grosColisIdx] || '').trim() : '',
+            nouveau: nouveauIdx >= 0 ? (row[nouveauIdx] || '').trim() : 'Non'
           };
         })
         .filter(a => a.status.toLowerCase() === 'live' && a.n && !isNaN(a.lat) && !isNaN(a.lng));
 
       if (liveAgencies.length > 0) {
         agencies = liveAgencies;
+        liveAgenciesList = liveAgencies;
         lastUpdateTimestamp = new Date();
         updateMarkers();
       }
