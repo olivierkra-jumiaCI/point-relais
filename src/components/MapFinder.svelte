@@ -79,7 +79,7 @@
       agencies: agenciesInRegion,
       visible: agenciesInRegion.length > 0
     };
-  }).filter(r => r.visible);
+  }).filter(r => r.visible).sort((a, b) => a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' }));
 
   // Auto-expand if searching
   $: if (searchQuery.length > 0 && filteredRegions.length > 0) {
