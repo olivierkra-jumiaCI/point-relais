@@ -130,7 +130,7 @@
     if (isUpdating) return;
     isUpdating = true;
     try {
-      const response = await fetch(`https://docs.google.com/spreadsheets/d/1M52gDOvkoXZtCA7RSmHM1vy4ksO6H5fdQQ-twAkRqKk/export?format=csv&gid=0&_t=${Date.now()}`, {
+      const response = await fetch(`https://docs.google.com/spreadsheets/d/1fxoAn0n25s8LFFvTWOT2tJIgYXLYhYc0RbZM66GqIxs/export?format=csv&gid=0&_t=${Date.now()}`, {
         cache: 'no-store'
       });
       const text = await response.text();
