@@ -77,7 +77,7 @@
     return {
       ...region,
       agencies: agenciesInRegion,
-      visible: agenciesInRegion.length > 0 || normalizeStr(region.name).includes(normalizeStr(searchQuery))
+      visible: agenciesInRegion.length > 0
     };
   }).filter(r => r.visible);
 
