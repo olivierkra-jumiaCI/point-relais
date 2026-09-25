@@ -171,7 +171,7 @@
           const { lat, lng } = parseCoords(rawLatLong, mapLink);
           return {
             status,
-            region: regionIdx >= 0 ? (row[regionIdx] || '').trim() : '',
+            region: regionIdx >= 0 && (row[regionIdx] || '').trim() !== '' ? (row[regionIdx] || '').trim() : 'Autres',
             n: pusIdx >= 0 ? (row[pusIdx] || '').trim() : '',
             lat,
             lng,
@@ -247,7 +247,7 @@
   onMount(() => {
     map = L.map('jumiaMap', { 
       zoomControl: false,
-      attributionControl: false 
+      attributionControl: true 
     }).setView([7.0, -5.5], 6);
 
     L.control.zoom({ position: 'topright' }).addTo(map);
