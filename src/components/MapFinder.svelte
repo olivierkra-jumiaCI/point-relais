@@ -315,6 +315,7 @@
   <div class="map-finder-header">
     <h2>Nos Points Relais &amp; Zones d'Expédition</h2>
     <p>Plus de 200 Points Relais, déposer un colis est aussi simple que de marcher dans la rue.</p>
+    <!-- live-sync-bar masquée (non visible pour les clients)
     <div class="live-sync-bar">
       <span class="live-badge"><span class="pulse-dot"></span> Données synchronisées en direct avec Google Sheets</span>
       {#if lastUpdateTimestamp}
@@ -324,6 +325,7 @@
         🔄
       </button>
     </div>
+    -->
     <div class="city-filters">
       <button class="city-filter {searchQuery === 'Abidjan' ? 'active' : ''}" on:click={() => searchQuery = 'Abidjan'}>Abidjan</button>
       <button class="city-filter {searchQuery === 'Yamoussoukro' ? 'active' : ''}" on:click={() => searchQuery = 'Yamoussoukro'}>Yamoussoukro</button>
