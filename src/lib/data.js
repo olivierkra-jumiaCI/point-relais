@@ -14,7 +14,7 @@ export const featuredCities = [
 export const steps = [
   { num: 1, icon: '🛒', title: 'Passez commande', text: 'Sélectionnez vos articles sur Jumia.ci et procédez au paiement normalement.' },
   { num: 2, icon: '📍', title: 'Choisissez une agence', text: 'Lors du choix de la méthode de livraison, sélectionnez « Point relais » et choisissez l\'agence la plus proche.' },
-  { num: 3, icon: '🔔', title: 'Soyez alerté en temps réel', text: 'Recevez un SMS ou une notification push dès que votre colis est disponible en agence, prêt à être retiré.' },
+  { num: 3, icon: '🔔', title: 'Une notification push et/ou un SMS', text: 'Recevez un SMS ou une notification push dès que votre colis est disponible en agence, prêt à être retiré.' },
   { num: 4, icon: '✅', title: 'Retirez votre colis', text: 'Munissez-vous de votre code de retrait (et de votre pièce d\'identité pour les commandes prépayées). C\'est tout !' }
 ];
 
